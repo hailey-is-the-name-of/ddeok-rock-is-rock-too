@@ -1,1 +1,444 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>BTC/KRW 180s Crash Demo</title>
+<style>
+:root{
+  --bg:#071017;
+  --bg2:#09131b;
+  --panel:#0b151e;
+  --line:#1a242e;
+  --muted:#8f98a3;
+  --text:#f1f4f7;
+  --red:#ff4d4f;
+  --green:#34c66b;
+  --purple:#9e72ff;
+  --orange:#ff8a2a;
+  --blue:#5aa4ff;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;background:#000}
+html,body{margin:0;background:#000;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",Roboto,Arial,sans-serif}
+body{min-height:100svh;display:flex;justify-content:center;align-items:flex-start;overflow:hidden}
+#phone{
+  width:min(100vw,46.1538svh);
+  height:min(100svh,216.6667vw);
+  min-width:300px;
+  aspect-ratio:426/923;
+  background:linear-gradient(180deg,#081119,#060d13 65%,#050a0f);
+  overflow:hidden;
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  border-left:1px solid #101820;
+  border-right:1px solid #101820;
+  container-type:inline-size;
+  font-variant-numeric:tabular-nums;
+}
+.status{
+  height:5.15%;flex:0 0 5.15%;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 5.2% 0 8.1%;
+  font-weight:700;font-size:4.1cqw;
+  letter-spacing:-.04cqw;
+}
+.status .right{display:flex;gap:2.1cqw;align-items:center}
+.signal{display:flex;gap:.45cqw;align-items:flex-end;height:3.2cqw}
+.signal i{width:.72cqw;background:#fff;border-radius:.5cqw;display:block}
+.signal i:nth-child(1){height:1.05cqw}.signal i:nth-child(2){height:1.7cqw}.signal i:nth-child(3){height:2.45cqw}.signal i:nth-child(4){height:3.2cqw}
+.wifi{width:4.5cqw;height:3.2cqw;border-top:.72cqw solid #fff;border-radius:50%;position:relative}
+.wifi:after{content:"";position:absolute;width:1.15cqw;height:1.15cqw;background:#fff;border-radius:50%;left:50%;bottom:-.1cqw;transform:translateX(-50%)}
+.battery{height:3.8cqw;min-width:7.5cqw;border:.35cqw solid #d7dce0;border-radius:1cqw;padding:0 .7cqw;display:flex;align-items:center;justify-content:center;font-size:2.4cqw;font-weight:800;color:#0b1117;background:#fff}
+.navbar{
+  height:5.64%;flex:0 0 5.64%;border-bottom:1px solid var(--line);
+  display:grid;grid-template-columns:1fr 2fr 1fr;align-items:center;padding:0 3.3%;
+}
+.back{position:relative;width:5.2cqw;height:5.2cqw;color:#d7dde2}
+.back:before{content:"";position:absolute;width:3.7cqw;height:3.7cqw;left:.8cqw;top:.7cqw;border-left:.55cqw solid currentColor;border-bottom:.55cqw solid currentColor;transform:rotate(45deg)}
+.back:after{content:"";position:absolute;width:5.3cqw;height:.55cqw;left:.4cqw;top:2.45cqw;background:currentColor;border-radius:1cqw}
+.pair{text-align:center;font-size:4.15cqw;font-weight:620;letter-spacing:-.06cqw}
+.pair small{display:inline-block;font-size:.72em;color:#a7aeb7;margin-left:1.2cqw;transform:translateY(-.2cqw)}
+.icons{display:flex;align-items:center;justify-content:flex-end;gap:4.5cqw;color:#cfd6dd;font-size:6.4cqw;line-height:1;white-space:nowrap}
+.icons .kebab{font-size:6cqw;transform:translateY(-.25cqw)}
+.hero{
+  height:12.13%;flex:0 0 12.13%;
+  display:grid;grid-template-columns:1.55fr 1.08fr;
+  padding:5.8% 3.8% 2.4% 3.2%;
+  border-bottom:1px solid var(--line);
+}
+.priceBox{min-width:0}
+#price{
+  font-size:6.95cqw;font-weight:520;letter-spacing:-.14cqw;line-height:1;
+  color:#d9dee4;
+}
+.krw{color:#7f8790;font-size:2.75cqw;margin-top:1.7cqw;line-height:1}
+.change{font-size:3.25cqw;color:var(--red);margin-top:2.1cqw;display:flex;gap:2.05cqw;align-items:center;line-height:1}
+.sparkWrap{position:absolute;left:42.5%;top:17.1%;width:16.8%;height:3.1%;margin:0}
+.stats{display:grid;grid-template-columns:1fr auto;row-gap:1.95cqw;column-gap:1.5cqw;align-content:start;font-size:2.42cqw;line-height:1.12}
+.stats .k{color:#a3abb4}.stats .v{text-align:right;white-space:nowrap}
+.red{color:var(--red)}.blue{color:var(--blue)}
+.tabs{
+  height:5.58%;flex:0 0 5.58%;display:grid;grid-template-columns:repeat(5,1fr);border-bottom:1px solid var(--line);align-items:end
+}
+.tab{height:100%;display:flex;align-items:center;justify-content:center;color:#9299a2;font-size:3.65cqw;font-weight:520;position:relative}
+.tab.active{color:var(--purple);font-weight:700}
+.tab.active:after{content:"";position:absolute;left:10%;right:10%;bottom:0;height:.72cqw;background:var(--purple);border-radius:1cqw 1cqw 0 0}
+.controls{
+  height:5.09%;flex:0 0 5.09%;display:flex;align-items:center;justify-content:space-between;padding:0 3.5%;
+}
+.maBox{border:1px solid #202a34;border-radius:1.8cqw;height:7.15cqw;display:flex;align-items:center;padding:0 2cqw;gap:2.3cqw;background:#09121a}
+.maBox b{font-size:2.65cqw;color:#d8dde2;font-weight:500;white-space:nowrap}
+.legend{display:flex;gap:1.2cqw;font-size:2.55cqw;color:#aab2bb;white-space:nowrap}
+.legend span:before{content:"";width:1.45cqw;height:1.45cqw;border-radius:50%;display:inline-block;margin-right:.6cqw}
+.l5:before{background:#33c86c}.l20:before{background:#ff454d}.l60:before{background:#ff8a25}.l120:before{background:#9b6df4}
+.chartHeadBtns{display:flex;gap:2.6cqw}
+.squareBtn{width:7.5cqw;height:7.5cqw;border-radius:1.8cqw;border:1px solid #27313b;display:grid;place-items:center;color:#b8c0c8;font-size:4cqw;background:#0a131b}
+.chart{
+  height:47.29%;flex:0 0 47.29%;
+  position:relative;
+  border-top:1px solid #111a22;
+  border-bottom:1px solid #1b252f;
+  background:
+    linear-gradient(#101820 1px,transparent 1px) 0 16.6%/100% 16.6%,
+    linear-gradient(90deg,#101820 1px,transparent 1px) 14% 0/21% 100%;
+}
+#chartCanvas,#sparkCanvas{width:100%;height:100%;display:block}
+#chartCanvas{position:absolute;inset:0}
+.priceTag{
+  position:absolute;right:0;top:34%;
+  background:var(--red);color:#fff;padding:5px 7px;border-radius:3px 0 0 3px;
+  font-size:2.48cqw;font-weight:500;transform:translateY(-50%);pointer-events:none
+}
+.priceTag:before{
+  content:"";position:absolute;right:100%;top:50%;width:100vw;border-top:1px dashed var(--red);opacity:.8
+}
+.volLabel{position:absolute;left:2.2%;bottom:22.4%;font-size:2.43cqw;color:#bcc3ca}
+.timeAxis{position:absolute;left:0;right:0;bottom:0;height:8.1%;border-top:1px solid #111922;display:flex;justify-content:space-around;align-items:center;font-size:2.32cqw;color:#9ba3ad;padding-left:2%}
+.modeRow{
+  height:8.17%;flex:0 0 8.17%;display:flex;align-items:center;justify-content:space-between;padding:0 3.5%;
+}
+.periods{display:flex;gap:.9cqw;align-items:center;flex:1;min-width:0}
+.period{padding:2.4cqw 1.45cqw;border-radius:1.6cqw;color:#aeb5bd;font-size:3.15cqw;white-space:nowrap}
+.period.active{padding-inline:2.4cqw;background:#17152d;color:#b69aff;font-weight:700}
+.candleIcon{display:flex;gap:0}
+.candleIcon div{width:9.85cqw;height:9cqw;border:1px solid #262f39;display:grid;place-items:center;color:#aeb6bf;font-size:4.2cqw}
+.candleIcon div:first-child{border-radius:1.8cqw 0 0 1.8cqw}.candleIcon div:last-child{border-radius:0 1.8cqw 1.8cqw 0}
+.candleIcon .active{color:var(--purple);background:#17152d}
+.actions{
+  height:7.7%;flex:0 0 7.7%;display:grid;grid-template-columns:1fr 1fr;gap:3cqw;padding:1.2% 3.5% 2.9%;
+}
+.action{
+  border:0;border-radius:1.9cqw;color:#fff;font-size:4.12cqw;font-weight:720;letter-spacing:.02cqw;
+}
+.buy{background:linear-gradient(90deg,#2fc46a,#2ebc64)}
+.sell{background:linear-gradient(90deg,#e34343,#f04848)}
+.homebar{position:absolute;bottom:1.55%;left:32.3%;right:32.3%;height:1.2cqw;background:#fff;border-radius:2cqw}
+.demoNote{
+  display:none
+}
+.flash{animation:flash .34s ease}
+@keyframes flash{0%{filter:brightness(1.7)}100%{filter:brightness(1)}}
+@media (max-aspect-ratio:9/19){#phone{width:100vw;height:100svh;aspect-ratio:auto}.chart{min-height:36%}}
+@media (prefers-reduced-motion:reduce){.flash{animation:none}}
+</style>
+</head>
+<body>
+<div id="phone">
+  <div class="status">
+    <span>9:41</span>
+    <span class="right"><span class="signal"><i></i><i></i><i></i><i></i></span><span class="wifi"></span><span class="battery">87</span></span>
+  </div>
 
+  <div class="navbar">
+    <div class="back">‹</div>
+    <div class="pair">BTC / KRW <small>⌄</small></div>
+    <div class="icons"><span>☆</span><span class="kebab">⋮</span></div>
+  </div>
+
+  <section class="hero">
+    <div class="priceBox">
+      <div id="price">107,845,000</div>
+      <div class="krw">KRW</div>
+      <div class="change"><span id="delta">-152,000</span><span>▼</span><span id="pct">-0.14%</span></div>
+      <div class="sparkWrap"><canvas id="sparkCanvas"></canvas></div>
+    </div>
+    <div class="stats">
+      <div class="k">고가</div><div class="v red" id="high">108,250,000</div>
+      <div class="k">저가</div><div class="v blue" id="low">106,920,000</div>
+      <div class="k">거래량 (BTC)</div><div class="v" id="volume">1,128.35</div>
+      <div class="k">거래대금 (KRW)</div><div class="v" id="turnover">121,210,482,000</div>
+    </div>
+  </section>
+
+  <div class="tabs">
+    <div class="tab active">차트</div><div class="tab">주문</div><div class="tab">호가</div><div class="tab">시세</div><div class="tab">정보</div>
+  </div>
+
+  <div class="controls">
+    <div class="maBox"><b>이동평균선</b><div class="legend"><span class="l5">MA 5</span><span class="l20">20</span><span class="l60">60</span><span class="l120">120</span></div></div>
+    <div class="chartHeadBtns"><div class="squareBtn">↗</div><div class="squareBtn">⚙</div></div>
+  </div>
+
+  <section class="chart">
+    <canvas id="chartCanvas"></canvas>
+    <div class="priceTag" id="priceTag">107,845,000</div>
+    <div class="volLabel">거래량 (BTC)</div>
+    <div class="timeAxis"><span>08-08 08:00</span><span>08-08 08:30</span><span>08-08 09:00</span><span>08-08 09:30</span><span>08-08 10:00</span></div>
+  </section>
+
+  <div class="modeRow">
+    <div class="periods"><div class="period active">1분⌄</div><div class="period">5분</div><div class="period">15분</div><div class="period">1시간</div><div class="period">4시간</div><div class="period">1일</div></div>
+    <div class="candleIcon"><div class="active">♮</div><div>⌁</div></div>
+  </div>
+
+  <div class="actions">
+    <button class="action buy" type="button" id="buyBtn">매수</button>
+    <button class="action sell" type="button" id="sellBtn">매도</button>
+  </div>
+  <div class="demoNote" id="demoNote">180초 시뮬레이션 · 로컬 데모</div>
+  <div class="homebar"></div>
+</div>
+
+<script>
+(() => {
+  const root = document.getElementById('phone');
+  if (root.dataset.ready) return;
+  root.dataset.ready = '1';
+
+  const START = 107845000;
+  const TARGET = Math.round(START * 0.80);
+  const DURATION = 180000;
+  const candleEvery = 3000;
+  const maxVisible = 64;
+
+  const fmt = n => Math.round(n).toLocaleString('ko-KR');
+
+  // Screenshot-like initial sequence, reconstructed from the visible 1-minute chart.
+  const closes = [
+    107760000,107980000,108020000,107900000,107720000,107380000,107020000,106860000,
+    107160000,106920000,106780000,106860000,106720000,106660000,106610000,106420000,
+    106280000,106080000,105980000,105960000,105820000,105940000,105760000,105880000,
+    105980000,105880000,106020000,105940000,106080000,106420000,106520000,106420000,
+    106680000,106760000,106900000,106980000,107160000,107080000,107020000,107120000,
+    107040000,107220000,107420000,107620000,107760000,107920000,107780000,107960000,
+    108060000,107920000,108120000,107900000,107845000
+  ];
+
+  const candles = [];
+  let prev = 107700000;
+  const deterministic = i => {
+    const x = Math.sin(i * 12.9898) * 43758.5453;
+    return x - Math.floor(x);
+  };
+  closes.forEach((c,i) => {
+    const o = prev;
+    const body = Math.max(50000, Math.abs(c-o));
+    const up = 25000 + deterministic(i+2) * 120000;
+    const dn = 25000 + deterministic(i+11) * 130000;
+    const h = Math.max(o,c) + up;
+    const l = Math.min(o,c) - dn;
+    const v = 250 + deterministic(i+23) * 1200 + (body/500000)*300;
+    candles.push({o,h,l,c,v});
+    prev = c;
+  });
+
+  const future = [];
+  let fp = START;
+  const n = Math.floor(DURATION/candleEvery);
+  for(let i=1;i<=n;i++){
+    const t = i/n;
+    const trend = START + (TARGET-START) * t;
+    // Multi-scale oscillation: larger early/mid volatility, tapering near the target.
+    const amp = (1-t)*850000 + 180000;
+    const wave = Math.sin(i*0.92)*amp*0.42 + Math.sin(i*0.31+1.4)*amp*0.31;
+    const noise = (deterministic(i+90)-0.5)*amp*0.72;
+    let c = trend + wave + noise;
+    if(i===n) c = TARGET;
+    const o = fp;
+    const body = Math.abs(c-o);
+    const h = Math.max(o,c) + 90000 + deterministic(i+170)*(250000 + body*.18);
+    const l = Math.min(o,c) - 90000 - deterministic(i+270)*(280000 + body*.20);
+    const v = 500 + deterministic(i+350)*1400 + Math.min(2600, body/18000);
+    future.push({o,h,l,c,v});
+    fp = c;
+  }
+
+  let startedAt = performance.now();
+  let added = 0;
+  let paused = false;
+  let pauseAt = 0;
+  let pauseAccum = 0;
+
+  const chart = document.getElementById('chartCanvas');
+  const spark = document.getElementById('sparkCanvas');
+  const ctx = chart.getContext('2d');
+  const sctx = spark.getContext('2d');
+  const els = {
+    price:document.getElementById('price'),
+    delta:document.getElementById('delta'),
+    pct:document.getElementById('pct'),
+    high:document.getElementById('high'),
+    low:document.getElementById('low'),
+    volume:document.getElementById('volume'),
+    turnover:document.getElementById('turnover'),
+    tag:document.getElementById('priceTag'),
+    note:document.getElementById('demoNote')
+  };
+
+  function resizeCanvas(c, cctx){
+    const r=c.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2);
+    const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr));
+    if(c.width!==w || c.height!==h){c.width=w;c.height=h}
+    cctx.setTransform(dpr,0,0,dpr,0,0);
+    return {w:r.width,h:r.height};
+  }
+
+  function ma(data, p, idx){
+    const s=Math.max(0,idx-p+1); let sum=0;
+    for(let j=s;j<=idx;j++) sum += data[j].c;
+    return sum/(idx-s+1);
+  }
+
+  function draw(){
+    const all = candles.slice(-maxVisible);
+    const {w,h}=resizeCanvas(chart,ctx);
+    ctx.clearRect(0,0,w,h);
+    const top=h*.012, bottom=h*.24, plotH=h-bottom-top, volTop=h*.78, volH=h*.14;
+    const left=w*.008, right=w*.155, plotW=w-left-right;
+    let min=Infinity,max=-Infinity;
+    all.forEach(x=>{min=Math.min(min,x.l);max=Math.max(max,x.h)});
+    const pad=(max-min)*0.08 || 1000000; min-=pad;max+=pad;
+    const y=p=>top+(max-p)/(max-min)*plotH;
+    const xstep=plotW/Math.max(1,all.length);
+    const x=i=>left+(i+.5)*xstep;
+
+    ctx.font=`${Math.max(9,w*.0243)}px -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif`;
+    ctx.textAlign='left';
+    ctx.fillStyle='#9aa3ac';
+    for(let i=0;i<6;i++){
+      const p=max-(max-min)*(i/5);
+      const yy=top+plotH*(i/5);
+      ctx.fillText(fmt(Math.round(p/10000)*10000),w-right+w*.016,yy+w*.008);
+    }
+
+    const maxV=Math.max(...all.map(a=>a.v),1);
+    all.forEach((d,i)=>{
+      const xx=x(i), up=d.c>=d.o;
+      const col=up?'#31c66a':'#ff4d4f';
+      const wickTop=y(d.h),wickBot=y(d.l);
+      ctx.strokeStyle=col;ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(xx,wickTop);ctx.lineTo(xx,wickBot);ctx.stroke();
+      const yo=y(d.o),yc=y(d.c), bh=Math.max(2,Math.abs(yc-yo));
+      ctx.fillStyle=col;
+      ctx.fillRect(xx-Math.max(2,xstep*.28),Math.min(yo,yc),Math.max(3,xstep*.56),bh);
+      const vh=(d.v/maxV)*volH;
+      ctx.globalAlpha=.83;
+      ctx.fillRect(xx-Math.max(2,xstep*.25),volTop+volH-vh,Math.max(3,xstep*.5),vh);
+      ctx.globalAlpha=1;
+    });
+
+    const periods=[5,20,60,120], cols=['#35c76e','#ff454d','#ff8a28','#9b6df4'];
+    periods.forEach((p,k)=>{
+      ctx.strokeStyle=cols[k];ctx.lineWidth=1.2;ctx.beginPath();
+      all.forEach((d,i)=>{
+        const globalIdx=Math.max(0,candles.length-all.length+i);
+        const m=ma(candles,p,globalIdx);
+        const xx=x(i),yy=y(m);
+        i?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy);
+      });
+      ctx.stroke();
+    });
+
+    const current=all[all.length-1].c;
+    const py=Math.max(top,Math.min(top+plotH,y(current)));
+    els.tag.style.top=(py/h*100)+'%';
+  }
+
+  function drawSpark(){
+    const data=candles.slice(-22).map(x=>x.c);
+    const {w,h}=resizeCanvas(spark,sctx);
+    sctx.clearRect(0,0,w,h);
+    const mi=Math.min(...data),ma=Math.max(...data), span=ma-mi||1;
+    sctx.strokeStyle='#ff4d4f';sctx.lineWidth=1.5;sctx.beginPath();
+    data.forEach((p,i)=>{
+      const xx=i/(data.length-1)*w;
+      const yy=3+(ma-p)/span*(h-6);
+      i?sctx.lineTo(xx,yy):sctx.moveTo(xx,yy);
+    });
+    sctx.stroke();
+  }
+
+  function updateHeader(price, progress){
+    els.price.textContent=fmt(price);
+    els.tag.textContent=fmt(price);
+    if(progress <= .002){
+      els.delta.textContent='-152,000';
+      els.pct.textContent='-0.14%';
+    } else {
+      const d=price-START;
+      els.delta.textContent=(d>=0?'+':'')+fmt(d);
+      els.pct.textContent=(d/START*100).toFixed(2)+'%';
+    }
+    const visible=candles.slice(-64);
+    els.high.textContent=fmt(Math.max(...visible.map(c=>c.h)));
+    els.low.textContent=fmt(Math.min(...visible.map(c=>c.l)));
+    const v=visible.slice(-20).reduce((a,c)=>a+c.v,0);
+    els.volume.textContent=v.toLocaleString('ko-KR',{maximumFractionDigits:2});
+    els.turnover.textContent=fmt(Math.round(v*price));
+  }
+
+  function tick(now){
+    if(!paused){
+      const elapsed=Math.min(DURATION,now-startedAt-pauseAccum);
+      const should=Math.min(future.length,Math.floor(elapsed/candleEvery));
+      while(added<should){
+        candles.push(future[added]);
+        added++;
+        root.classList.remove('flash');
+        void root.offsetWidth;
+        root.classList.add('flash');
+      }
+      const prog=elapsed/DURATION;
+      const idx=Math.min(future.length-1,Math.floor(elapsed/candleEvery));
+      let p=START;
+      if(idx>=0 && future[idx]){
+        const prior = idx===0 ? START : future[idx-1].c;
+        const local=(elapsed%candleEvery)/candleEvery;
+        p = prior + (future[idx].c-prior)*local;
+      }
+      if(elapsed>=DURATION){
+        p=TARGET;
+        els.note.textContent='시뮬레이션 완료 · 시작 대비 -20.00%';
+      } else {
+        els.note.textContent='180초 시뮬레이션 · '+Math.ceil((DURATION-elapsed)/1000)+'초 남음';
+      }
+      updateHeader(p,prog);
+      draw(); drawSpark();
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function demoAction(label){
+    const old=els.note.textContent;
+    els.note.textContent=label+' 버튼은 시각 데모입니다';
+    setTimeout(()=>{ if(performance.now()-startedAt < DURATION) els.note.textContent=old; },1400);
+  }
+  document.getElementById('buyBtn').addEventListener('click',()=>demoAction('매수'));
+  document.getElementById('sellBtn').addEventListener('click',()=>demoAction('매도'));
+
+  // Tap the price to pause/resume without adding a separate UI element.
+  els.price.addEventListener('click',()=>{
+    paused=!paused;
+    if(paused){pauseAt=performance.now();els.note.textContent='일시정지 · 가격을 다시 누르면 재개'}
+    else{pauseAccum += performance.now()-pauseAt;els.note.textContent='시뮬레이션 재개'}
+  });
+
+  window.addEventListener('resize',()=>{draw();drawSpark()});
+  draw();drawSpark();updateHeader(START,0);
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
