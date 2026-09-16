@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>BTC/KRW 180s Crash Demo</title>
+<title>BTC / KRW</title>
 <style>
 :root{
   --bg:#071017;
@@ -138,10 +138,7 @@ body{min-height:100svh;display:flex;justify-content:center;align-items:flex-star
 .demoNote{
   display:none
 }
-.flash{animation:flash .34s ease}
-@keyframes flash{0%{filter:brightness(1.7)}100%{filter:brightness(1)}}
 @media (max-aspect-ratio:9/19){#phone{width:100vw;height:100svh;aspect-ratio:auto}.chart{min-height:36%}}
-@media (prefers-reduced-motion:reduce){.flash{animation:none}}
 </style>
 </head>
 <body>
@@ -211,7 +208,6 @@ body{min-height:100svh;display:flex;justify-content:center;align-items:flex-star
   const TARGET = Math.round(START * 0.80);
   const DURATION = 180000;
   const candleEvery = 3000;
-  const maxVisible = 64;
 
   const fmt = n => Math.round(n).toLocaleString('ko-KR');
 
@@ -225,6 +221,9 @@ body{min-height:100svh;display:flex;justify-content:center;align-items:flex-star
     107040000,107220000,107420000,107620000,107760000,107920000,107780000,107960000,
     108060000,107920000,108120000,107900000,107845000
   ];
+  // A fixed count prevents the entire chart from changing scale whenever
+  // a new live candle appears.
+  const maxVisible = closes.length;
 
   const candles = [];
   let prev = 107700000;
@@ -247,20 +246,39 @@ body{min-height:100svh;display:flex;justify-content:center;align-items:flex-star
   const future = [];
   let fp = START;
   const n = Math.floor(DURATION/candleEvery);
+  // Fear-crash shape: hesitation, liquidation, short dead-cat bounces,
+  // increasingly violent sell-offs and a final low. Ratios are relative to START.
+  const crashAnchors = [
+    [0.00,1.000],[0.08,.994],[0.17,.956],[0.23,.973],
+    [0.36,.922],[0.43,.941],[0.57,.873],[0.64,.895],
+    [0.78,.832],[0.86,.851],[0.94,.812],[1.00,.800]
+  ];
+  function crashLevel(t){
+    for(let i=1;i<crashAnchors.length;i++){
+      const a=crashAnchors[i-1], b=crashAnchors[i];
+      if(t<=b[0]){
+        const u=(t-a[0])/(b[0]-a[0]);
+        const eased=u*u*(3-2*u);
+        return a[1]+(b[1]-a[1])*eased;
+      }
+    }
+    return .8;
+  }
   for(let i=1;i<=n;i++){
     const t = i/n;
-    const trend = START + (TARGET-START) * t;
-    // Multi-scale oscillation: larger early/mid volatility, tapering near the target.
-    const amp = (1-t)*850000 + 180000;
-    const wave = Math.sin(i*0.92)*amp*0.42 + Math.sin(i*0.31+1.4)*amp*0.31;
-    const noise = (deterministic(i+90)-0.5)*amp*0.72;
-    let c = trend + wave + noise;
+    const anchorPrice=START*crashLevel(t);
+    const panic=1+1.7*Math.max(0,Math.sin((t-.08)*Math.PI*5));
+    const jitter=(deterministic(i+90)-.5)*START*.0018*panic*(1-t);
+    let c=anchorPrice+jitter;
     if(i===n) c = TARGET;
     const o = fp;
     const body = Math.abs(c-o);
-    const h = Math.max(o,c) + 90000 + deterministic(i+170)*(250000 + body*.18);
-    const l = Math.min(o,c) - 90000 - deterministic(i+270)*(280000 + body*.20);
-    const v = 500 + deterministic(i+350)*1400 + Math.min(2600, body/18000);
+    const falling=c<o;
+    const upper=70000+deterministic(i+170)*(180000+body*.13);
+    const lower=90000+deterministic(i+270)*(260000+body*(falling?.34:.20));
+    const h=Math.max(o,c)+upper;
+    const l=Math.min(o,c)-lower;
+    const v=520+deterministic(i+350)*900+Math.min(6200,body/8500)*(falling?1.35:.72);
     future.push({o,h,l,c,v});
     fp = c;
   }
@@ -301,8 +319,8 @@ body{min-height:100svh;display:flex;justify-content:center;align-items:flex-star
     return sum/(idx-s+1);
   }
 
-  function draw(){
-    const all = candles.slice(-maxVisible);
+  function draw(series=candles){
+    const all = series.slice(-maxVisible);
     const {w,h}=resizeCanvas(chart,ctx);
     ctx.clearRect(0,0,w,h);
     const top=h*.012, bottom=h*.24, plotH=h-bottom-top, volTop=h*.78, volH=h*.14;
@@ -343,8 +361,8 @@ body{min-height:100svh;display:flex;justify-content:center;align-items:flex-star
     periods.forEach((p,k)=>{
       ctx.strokeStyle=cols[k];ctx.lineWidth=1.2;ctx.beginPath();
       all.forEach((d,i)=>{
-        const globalIdx=Math.max(0,candles.length-all.length+i);
-        const m=ma(candles,p,globalIdx);
+        const globalIdx=Math.max(0,series.length-all.length+i);
+        const m=ma(series,p,globalIdx);
         const xx=x(i),yy=y(m);
         i?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy);
       });
@@ -356,8 +374,8 @@ body{min-height:100svh;display:flex;justify-content:center;align-items:flex-star
     els.tag.style.top=(py/h*100)+'%';
   }
 
-  function drawSpark(){
-    const data=candles.slice(-22).map(x=>x.c);
+  function drawSpark(series=candles){
+    const data=series.slice(-22).map(x=>x.c);
     const {w,h}=resizeCanvas(spark,sctx);
     sctx.clearRect(0,0,w,h);
     const mi=Math.min(...data),ma=Math.max(...data), span=ma-mi||1;
@@ -370,7 +388,7 @@ body{min-height:100svh;display:flex;justify-content:center;align-items:flex-star
     sctx.stroke();
   }
 
-  function updateHeader(price, progress){
+  function updateHeader(price, progress, series=candles){
     els.price.textContent=fmt(price);
     els.tag.textContent=fmt(price);
     if(progress <= .002){
@@ -381,7 +399,7 @@ body{min-height:100svh;display:flex;justify-content:center;align-items:flex-star
       els.delta.textContent=(d>=0?'+':'')+fmt(d);
       els.pct.textContent=(d/START*100).toFixed(2)+'%';
     }
-    const visible=candles.slice(-64);
+    const visible=series.slice(-maxVisible);
     els.high.textContent=fmt(Math.max(...visible.map(c=>c.h)));
     els.low.textContent=fmt(Math.min(...visible.map(c=>c.l)));
     const v=visible.slice(-20).reduce((a,c)=>a+c.v,0);
@@ -389,33 +407,55 @@ body{min-height:100svh;display:flex;justify-content:center;align-items:flex-star
     els.turnover.textContent=fmt(Math.round(v*price));
   }
 
+  function makeLiveCandle(index, local){
+    const target=future[index];
+    const eased=local*local*(3-2*local);
+    const phase=deterministic(index+700)*Math.PI*2;
+    const body=Math.abs(target.c-target.o);
+    const amp=Math.min(420000,60000+body*.16);
+    // Two small intra-candle waves. sin(PI*t) makes the noise exactly zero
+    // at both ends, so candle transitions remain continuous.
+    const micro=Math.sin(Math.PI*local)*(
+      Math.sin(local*Math.PI*4+phase)*amp*.62+
+      Math.sin(local*Math.PI*9+phase*.4)*amp*.25
+    );
+    const c=target.o+(target.c-target.o)*eased+micro;
+    const upper=target.h-Math.max(target.o,target.c);
+    const lower=Math.min(target.o,target.c)-target.l;
+    const wickGrowth=.18+.82*local;
+    return {
+      o:target.o,
+      c,
+      h:Math.max(target.o,c)+upper*wickGrowth,
+      l:Math.min(target.o,c)-lower*wickGrowth,
+      v:target.v*(.08+.92*local)
+    };
+  }
+
   function tick(now){
     if(!paused){
       const elapsed=Math.min(DURATION,now-startedAt-pauseAccum);
-      const should=Math.min(future.length,Math.floor(elapsed/candleEvery));
-      while(added<should){
+      const completed=Math.min(future.length,Math.floor(elapsed/candleEvery));
+      while(added<completed){
         candles.push(future[added]);
         added++;
-        root.classList.remove('flash');
-        void root.offsetWidth;
-        root.classList.add('flash');
       }
       const prog=elapsed/DURATION;
-      const idx=Math.min(future.length-1,Math.floor(elapsed/candleEvery));
-      let p=START;
-      if(idx>=0 && future[idx]){
-        const prior = idx===0 ? START : future[idx-1].c;
-        const local=(elapsed%candleEvery)/candleEvery;
-        p = prior + (future[idx].c-prior)*local;
-      }
+      let p=TARGET;
+      let liveSeries=candles;
       if(elapsed>=DURATION){
         p=TARGET;
         els.note.textContent='시뮬레이션 완료 · 시작 대비 -20.00%';
       } else {
+        const idx=completed;
+        const local=(elapsed%candleEvery)/candleEvery;
+        const live=makeLiveCandle(idx,local);
+        liveSeries=candles.concat(live);
+        p=live.c;
         els.note.textContent='180초 시뮬레이션 · '+Math.ceil((DURATION-elapsed)/1000)+'초 남음';
       }
-      updateHeader(p,prog);
-      draw(); drawSpark();
+      updateHeader(p,prog,liveSeries);
+      draw(liveSeries);drawSpark(liveSeries);
     }
     requestAnimationFrame(tick);
   }
